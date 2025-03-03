@@ -34,7 +34,7 @@ export function createPlatforms(scene: Phaser.Scene): Phaser.Physics.Arcade.Stat
   
   // Visual enhancement - platforms have a subtle glow
   platforms.getChildren().forEach((platform) => {
-    platform.setTint(0x4466aa);
+    (platform as Phaser.GameObjects.Sprite).setTint(0x4466aa);
   });
   
   return platforms;

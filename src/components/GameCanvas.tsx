@@ -33,7 +33,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className }) => {
         physics: {
           default: 'arcade',
           arcade: {
-            gravity: { y: 500 },
+            gravity: { x: 0, y: 500 },
             debug: false
           }
         },
