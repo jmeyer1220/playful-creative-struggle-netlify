@@ -30,7 +30,8 @@ export class AdaptiveFeedbackManager {
     
     // Initialize particle system if the texture exists
     if (scene.textures.exists('particle')) {
-      this.particles = scene.add.particles('particle');
+      // Use correct typing for particle manager in Phaser v3.70+
+      this.particles = scene.add.particles(0, 0, 'particle') as unknown as Phaser.GameObjects.Particles.ParticleEmitterManager;
       
       // Create particle emitters (initially disabled)
       this.createParticleEmitters();
@@ -158,28 +159,40 @@ export class AdaptiveFeedbackManager {
     if (this.performanceScore >= 50) {
       // Between neutral and excelling
       progress = (this.performanceScore - 50) / 50; // 0 to 1
-      targetColor = Phaser.Display.Color.Interpolate.ColorWithColor(
+      const interpolatedColor = Phaser.Display.Color.Interpolate.ColorWithColor(
         this.NEUTRAL_COLOR,
         this.EXCEL_COLOR,
         1,
         progress
-      ) as Phaser.Display.Color;
+      );
+      
+      targetColor = new Phaser.Display.Color(
+        interpolatedColor.r, 
+        interpolatedColor.g, 
+        interpolatedColor.b
+      );
     } else {
       // Between struggling and neutral
       progress = this.performanceScore / 50; // 0 to 1
-      targetColor = Phaser.Display.Color.Interpolate.ColorWithColor(
+      const interpolatedColor = Phaser.Display.Color.Interpolate.ColorWithColor(
         this.STRUGGLE_COLOR,
         this.NEUTRAL_COLOR,
         1,
         progress
-      ) as Phaser.Display.Color;
+      );
+      
+      targetColor = new Phaser.Display.Color(
+        interpolatedColor.r, 
+        interpolatedColor.g, 
+        interpolatedColor.b
+      );
     }
     
-    // Apply tint to background or specific game elements
+    // Apply color to the background
     const color = Phaser.Display.Color.GetColor(
-      Math.floor(targetColor.red), 
-      Math.floor(targetColor.green), 
-      Math.floor(targetColor.blue)
+      targetColor.red, 
+      targetColor.green, 
+      targetColor.blue
     );
     this.scene.cameras.main.setBackgroundColor(color);
   }
