@@ -39,8 +39,9 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className }) => {
         },
         scene: [mainScene],
         render: {
-          pixelArt: false,
-          antialias: true
+          pixelArt: true, // Enable pixel art mode for sharper retro graphics
+          antialias: false, // Disable antialiasing for pixel art
+          roundPixels: true // Better for pixel art rendering
         },
         backgroundColor: '#111111',
         scale: {
