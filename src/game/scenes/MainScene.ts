@@ -3,6 +3,8 @@ import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { Enemy } from '../entities/Enemy';
 import { createPlatforms } from '../utils/platforms';
+import { AdaptiveFeedbackManager, FeedbackLevel } from '../utils/adaptiveFeedback';
+import { createParticleTexture } from '../utils/assetLoader';
 
 type MainSceneCallbacks = {
   onHealthChange: (health: number) => void;
@@ -19,10 +21,8 @@ export class MainScene extends Phaser.Scene {
   private dashKey!: Phaser.Input.Keyboard.Key;
   
   private callbacks: MainSceneCallbacks;
-  private feedbackState: 'neutral' | 'positive' | 'negative' = 'neutral';
-  private feedbackTimer: number = 0;
-  private hitCounter: number = 0;
-  private lastHitTime: number = 0;
+  private feedbackManager!: AdaptiveFeedbackManager;
+  private lastFeedbackUpdate: number = 0;
 
   constructor(callbacks: MainSceneCallbacks) {
     super({ key: 'MainScene' });
@@ -43,6 +43,9 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
+    // Create particle texture
+    createParticleTexture(this);
+    
     // Add background
     this.add.image(0, 0, 'background')
       .setOrigin(0, 0)
@@ -91,25 +94,41 @@ export class MainScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
     this.cameras.main.setDeadzone(100, 100);
     
+    // Initialize adaptive feedback system
+    this.feedbackManager = new AdaptiveFeedbackManager(this);
+    this.feedbackManager.setParticleTarget(this.player);
+    
     // Update HUD with initial values
     this.callbacks.onHealthChange(this.player.getHealth());
     this.callbacks.onEnergyChange(this.player.getEnergy());
+    this.updateHUDFeedback();
   }
 
   update(time: number, delta: number) {
-    // Update player with input
+    // Update adaptive feedback system
+    this.feedbackManager.update(delta);
+    
+    // Get player buffs based on performance
+    const { speedMultiplier, dashCooldownMultiplier } = this.feedbackManager.getPlayerBuffs();
+    
+    // Update player with input and buffs
     this.player.update(
       this.cursors,
       this.attackKey.isDown,
-      this.dashKey.isDown
+      this.dashKey.isDown,
+      speedMultiplier,
+      dashCooldownMultiplier
     );
     
     // Update HUD
     this.callbacks.onHealthChange(this.player.getHealth());
     this.callbacks.onEnergyChange(this.player.getEnergy());
     
-    // Update feedback state
-    this.updateFeedbackState(time);
+    // Update feedback state in HUD (not too frequently)
+    if (time - this.lastFeedbackUpdate > 500) {
+      this.updateHUDFeedback();
+      this.lastFeedbackUpdate = time;
+    }
     
     // Enemies chase player if within range
     this.enemies.getChildren().forEach((enemy) => {
@@ -126,13 +145,8 @@ export class MainScene extends Phaser.Scene {
     if (this.player.isAttacking()) {
       enemy.takeDamage(10);
       
-      // Increment hit counter and update last hit time
-      this.hitCounter++;
-      this.lastHitTime = this.time.now;
-      
-      if (this.hitCounter >= 3) {
-        this.setFeedbackState('positive');
-      }
+      // Register successful hit in feedback system
+      this.feedbackManager.registerHit();
       
       if (enemy.isDead()) {
         enemy.destroy();
@@ -142,29 +156,31 @@ export class MainScene extends Phaser.Scene {
 
   private handleEnemyCollision(player: any, enemy: any) {
     if (!this.player.isInvulnerable()) {
-      this.player.takeDamage(5);
-      this.hitCounter = 0;
-      this.setFeedbackState('negative');
+      const damageAmount = 5;
+      this.player.takeDamage(damageAmount);
+      
+      // Register damage taken in feedback system
+      this.feedbackManager.registerDamageTaken(damageAmount);
     }
   }
 
-  private setFeedbackState(state: 'neutral' | 'positive' | 'negative') {
-    if (this.feedbackState !== state) {
-      this.feedbackState = state;
-      this.callbacks.onFeedbackChange(state);
-      this.feedbackTimer = this.time.now;
-    }
-  }
-
-  private updateFeedbackState(time: number) {
-    // Reset feedback state after 2 seconds
-    if (this.feedbackState !== 'neutral' && time - this.feedbackTimer > 2000) {
-      this.setFeedbackState('neutral');
+  private updateHUDFeedback() {
+    const feedbackLevel = this.feedbackManager.getFeedbackLevel();
+    
+    // Map our feedback levels to the HUD's expected values
+    let hudFeedbackState: 'neutral' | 'positive' | 'negative';
+    
+    switch (feedbackLevel) {
+      case 'excelling':
+        hudFeedbackState = 'positive';
+        break;
+      case 'struggling':
+        hudFeedbackState = 'negative';
+        break;
+      default:
+        hudFeedbackState = 'neutral';
     }
     
-    // Reset hit counter if no hits for 1.5 seconds
-    if (this.hitCounter > 0 && time - this.lastHitTime > 1500) {
-      this.hitCounter = 0;
-    }
+    this.callbacks.onFeedbackChange(hudFeedbackState);
   }
 }

@@ -13,6 +13,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private maxJumps: number = 2;
   private facingRight: boolean = true;
   private invulnerableUntil: number = 0;
+  private baseMovementSpeed: number = 160;
+  private baseDashCooldownTime: number = 800;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player');
@@ -34,7 +36,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   update(
     cursors: Phaser.Types.Input.Keyboard.CursorKeys,
     attackKeyDown: boolean,
-    dashKeyDown: boolean
+    dashKeyDown: boolean,
+    speedMultiplier: number = 1.0,
+    dashCooldownMultiplier: number = 1.0
   ) {
     const time = this.scene.time.now;
     
@@ -43,14 +47,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.setVelocityX(0);
     }
     
-    // Handle movement
+    // Handle movement with performance-based speed adjustment
+    const currentSpeed = this.baseMovementSpeed * speedMultiplier;
+    
     if (cursors.left.isDown) {
       this.facingRight = false;
-      this.setVelocityX(-160);
+      this.setVelocityX(-currentSpeed);
       this.setFlipX(true);
     } else if (cursors.right.isDown) {
       this.facingRight = true;
-      this.setVelocityX(160);
+      this.setVelocityX(currentSpeed);
       this.setFlipX(false);
     }
     
@@ -76,15 +82,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = false;
     }
     
-    // Handle dashing
+    // Handle dashing with performance-based cooldown adjustment
+    const currentDashCooldown = this.baseDashCooldownTime * dashCooldownMultiplier;
+    
     if (dashKeyDown && time > this.dashCooldown && this.energy >= 20) {
       this.dash();
       this.energy = Math.max(0, this.energy - 20); // Dash costs 20 energy
-      this.dashCooldown = time + 800; // Dash cooldown of 800ms
+      this.dashCooldown = time + currentDashCooldown;
     }
     
     // Turn off dash after 200ms
-    if (this.isDashingFlag && time > this.dashCooldown - 600) {
+    if (this.isDashingFlag && time > this.dashCooldown - (this.baseDashCooldownTime - 200)) {
       this.isDashingFlag = false;
     }
     
@@ -114,6 +122,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private dash() {
     this.isDashingFlag = true;
+    // Apply performance-based dash speed (same calculation as movement for consistency)
     const dashSpeed = this.facingRight ? 400 : -400;
     this.setVelocityX(dashSpeed);
     
