@@ -42,7 +42,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className }) => {
           pixelArt: false,
           antialias: true
         },
-        backgroundColor: '#111111'
+        backgroundColor: '#111111',
+        scale: {
+          mode: Phaser.Scale.RESIZE,
+          autoCenter: Phaser.Scale.CENTER_BOTH
+        }
       };
 
       gameInstanceRef.current = new Phaser.Game(config);
@@ -74,8 +78,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className }) => {
     <div className={cn("relative w-full h-full overflow-hidden", className)}>
       <div 
         ref={gameContainerRef} 
-        className="w-full h-full rounded-lg overflow-hidden"
-        style={{ boxShadow: '0 0 20px rgba(0, 0, 0, 0.2)' }}
+        className="w-full h-full"
       />
       <HUD health={health} energy={energy} feedbackState={feedbackState} />
     </div>

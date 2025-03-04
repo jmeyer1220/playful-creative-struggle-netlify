@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -22,7 +21,7 @@ export const MainMenu: React.FC = () => {
       
       {/* Menu Options */}
       <div className="flex flex-col gap-4 w-full max-w-xs animate-fade-in">
-        <Link to="/game" className="w-full">
+        <Link to="/character-select" className="w-full">
           <Button 
             className="w-full h-14 text-lg bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 border-0 text-white shadow-lg transition-all duration-300 group rounded-lg"
           >
