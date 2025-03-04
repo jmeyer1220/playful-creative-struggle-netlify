@@ -16,8 +16,9 @@ export class AdaptiveFeedbackManager {
   private timeSinceLastHit: number = 0;
   private recentDamageTaken: number = 0;
   private currentLevel: FeedbackLevel = 'neutral';
+  
   // Updated particle system types for Phaser 3.70+
-  private particles: Phaser.GameObjects.Particles.ParticleEmitterManager | null = null;
+  private particles: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   private excelEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   private struggleEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   
@@ -31,19 +32,14 @@ export class AdaptiveFeedbackManager {
     
     // Initialize particle system if the texture exists
     if (scene.textures.exists('particle')) {
-      // Create particles with proper typing for Phaser 3.70+
-      this.particles = scene.add.particles('particle');
-      
-      // Create particle emitters (initially disabled)
+      // Create particles manager
       this.createParticleEmitters();
     }
   }
 
   private createParticleEmitters() {
-    if (!this.particles) return;
-    
     // Positive feedback particles (colorful, energetic)
-    this.excelEmitter = this.particles.createEmitter({
+    this.excelEmitter = this.scene.add.particles(0, 0, 'particle', {
       lifespan: 800,
       speed: { min: 50, max: 100 },
       scale: { start: 0.4, end: 0 },
@@ -54,7 +50,7 @@ export class AdaptiveFeedbackManager {
     });
     
     // Negative feedback particles (slower, darker)
-    this.struggleEmitter = this.particles.createEmitter({
+    this.struggleEmitter = this.scene.add.particles(0, 0, 'particle', {
       lifespan: 1200,
       speed: { min: 20, max: 40 },
       scale: { start: 0.3, end: 0 },
@@ -74,8 +70,8 @@ export class AdaptiveFeedbackManager {
     this.currentLevel = 'neutral';
     
     // Disable particle emitters
-    if (this.excelEmitter) this.excelEmitter.active = false;
-    if (this.struggleEmitter) this.struggleEmitter.active = false;
+    if (this.excelEmitter) this.excelEmitter.stop();
+    if (this.struggleEmitter) this.struggleEmitter.stop();
   }
   
   public registerHit(): void {
@@ -144,11 +140,19 @@ export class AdaptiveFeedbackManager {
   private onFeedbackLevelChanged(): void {
     // Toggle appropriate particle emitters
     if (this.excelEmitter) {
-      this.excelEmitter.active = (this.currentLevel === 'excelling');
+      if (this.currentLevel === 'excelling') {
+        this.excelEmitter.start();
+      } else {
+        this.excelEmitter.stop();
+      }
     }
     
     if (this.struggleEmitter) {
-      this.struggleEmitter.active = (this.currentLevel === 'struggling');
+      if (this.currentLevel === 'struggling') {
+        this.struggleEmitter.start();
+      } else {
+        this.struggleEmitter.stop();
+      }
     }
   }
   
@@ -168,9 +172,9 @@ export class AdaptiveFeedbackManager {
       );
       
       targetColor = new Phaser.Display.Color(
-        interpolatedColor.r, 
-        interpolatedColor.g, 
-        interpolatedColor.b
+        interpolatedColor.red, 
+        interpolatedColor.green, 
+        interpolatedColor.blue
       );
     } else {
       // Between struggling and neutral
@@ -183,9 +187,9 @@ export class AdaptiveFeedbackManager {
       );
       
       targetColor = new Phaser.Display.Color(
-        interpolatedColor.r, 
-        interpolatedColor.g, 
-        interpolatedColor.b
+        interpolatedColor.red, 
+        interpolatedColor.green, 
+        interpolatedColor.blue
       );
     }
     
@@ -200,10 +204,12 @@ export class AdaptiveFeedbackManager {
   
   public setParticleTarget(target: Phaser.GameObjects.Components.Transform): void {
     if (this.excelEmitter) {
+      this.excelEmitter.setPosition(target.x, target.y);
       this.excelEmitter.startFollow(target);
     }
     
     if (this.struggleEmitter) {
+      this.struggleEmitter.setPosition(target.x, target.y);
       this.struggleEmitter.startFollow(target);
     }
   }
