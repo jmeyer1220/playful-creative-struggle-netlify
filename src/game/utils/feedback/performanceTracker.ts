@@ -1,4 +1,3 @@
-
 import { FeedbackLevel, PerformanceStats, PlayerBuffs } from './types';
 
 export class PerformanceTracker {
@@ -73,8 +72,6 @@ export class PerformanceTracker {
     } else {
       this.currentLevel = 'neutral';
     }
-    
-    return oldLevel !== this.currentLevel;
   }
 
   public getStats(): PerformanceStats {

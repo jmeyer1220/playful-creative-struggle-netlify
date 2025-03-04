@@ -5,7 +5,8 @@ import { interpolateColors, applyBackgroundColor } from './feedback/colorUtils';
 import { ParticleManager } from './feedback/particleManager';
 import { PerformanceTracker } from './feedback/performanceTracker';
 
-export { FeedbackLevel, PerformanceStats } from './feedback/types';
+// Use 'export type' when re-exporting types with 'isolatedModules' enabled
+export type { FeedbackLevel, PerformanceStats } from './feedback/types';
 
 export class AdaptiveFeedbackManager {
   private scene: Phaser.Scene;
