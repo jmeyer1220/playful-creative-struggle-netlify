@@ -16,6 +16,7 @@ export class AdaptiveFeedbackManager {
   private timeSinceLastHit: number = 0;
   private recentDamageTaken: number = 0;
   private currentLevel: FeedbackLevel = 'neutral';
+  // Updated particle system types for Phaser 3.70+
   private particles: Phaser.GameObjects.Particles.ParticleEmitterManager | null = null;
   private excelEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   private struggleEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
@@ -30,8 +31,8 @@ export class AdaptiveFeedbackManager {
     
     // Initialize particle system if the texture exists
     if (scene.textures.exists('particle')) {
-      // Use correct typing for particle manager in Phaser v3.70+
-      this.particles = scene.add.particles(0, 0, 'particle') as unknown as Phaser.GameObjects.Particles.ParticleEmitterManager;
+      // Create particles with proper typing for Phaser 3.70+
+      this.particles = scene.add.particles('particle');
       
       // Create particle emitters (initially disabled)
       this.createParticleEmitters();
@@ -197,7 +198,7 @@ export class AdaptiveFeedbackManager {
     this.scene.cameras.main.setBackgroundColor(color);
   }
   
-  public setParticleTarget(target: Phaser.GameObjects.Components.Transform & Phaser.GameObjects.GameObject): void {
+  public setParticleTarget(target: Phaser.GameObjects.Components.Transform): void {
     if (this.excelEmitter) {
       this.excelEmitter.startFollow(target);
     }
