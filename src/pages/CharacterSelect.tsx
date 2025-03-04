@@ -1,50 +1,15 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Home, ChevronRight, ArrowLeft, ArrowRight } from 'lucide-react';
 import { toast } from "sonner";
+import { characters, CharacterType } from '@/data/characters';
 
-type CharacterType = {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  abilities: string[];
-};
+interface CharacterSelectProps {
+  onSelectCharacter: (character: CharacterType) => void;
+}
 
-const characters: CharacterType[] = [
-  {
-    id: "writer",
-    name: "The Writer",
-    description: "Masters the art of words, turning blank pages into captivating stories.",
-    color: "bg-indigo-500",
-    abilities: ["Double Jump", "Fast Recovery", "Word Strike"]
-  },
-  {
-    id: "painter",
-    name: "The Painter",
-    description: "Transforms empty canvases with vibrant colors and expressive brushstrokes.",
-    color: "bg-emerald-500",
-    abilities: ["Color Dash", "Canvas Shield", "Pigment Blast"]
-  },
-  {
-    id: "composer",
-    name: "The Composer",
-    description: "Weaves melodies and harmonies into emotional musical journeys.",
-    color: "bg-amber-500",
-    abilities: ["Sound Wave", "Rhythm Boost", "Harmony Shield"]
-  },
-  {
-    id: "designer",
-    name: "The Designer",
-    description: "Crafts functional beauty through structure, form, and purpose.",
-    color: "bg-rose-500",
-    abilities: ["Grid Dash", "Pattern Block", "Precision Strike"]
-  }
-];
-
-const CharacterSelect = () => {
+const CharacterSelect: React.FC<CharacterSelectProps> = ({ onSelectCharacter }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
   const selectedCharacter = characters[selectedIndex];
@@ -58,8 +23,7 @@ const CharacterSelect = () => {
   };
 
   const handleSelect = () => {
-    // In a full implementation, we would store the selected character in a context or state manager
-    // For now, just show a toast and navigate to the game
+    onSelectCharacter(selectedCharacter);
     toast.success(`Selected ${selectedCharacter.name}!`);
     navigate('/game');
   };

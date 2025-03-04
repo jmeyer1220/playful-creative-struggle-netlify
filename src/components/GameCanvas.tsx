@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 
 type GameCanvasProps = {
   className?: string;
+  characterId?: string;
 };
 
-export const GameCanvas: React.FC<GameCanvasProps> = ({ className }) => {
+export const GameCanvas: React.FC<GameCanvasProps> = ({ className, characterId = 'writer' }) => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const gameInstanceRef = useRef<Phaser.Game | null>(null);
   const [health, setHealth] = React.useState(100);
@@ -22,7 +23,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className }) => {
       const mainScene = new MainScene({
         onHealthChange: (newHealth) => setHealth(newHealth),
         onEnergyChange: (newEnergy) => setEnergy(newEnergy),
-        onFeedbackChange: (state) => setFeedbackState(state)
+        onFeedbackChange: (state) => setFeedbackState(state),
+        characterId: characterId
       });
 
       const config: Phaser.Types.Core.GameConfig = {
@@ -73,7 +75,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className }) => {
         gameInstanceRef.current = null;
       };
     }
-  }, []);
+  }, [characterId]);
 
   return (
     <div className={cn("relative w-full h-full overflow-hidden", className)}>
