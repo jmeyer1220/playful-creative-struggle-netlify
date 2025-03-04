@@ -16,7 +16,7 @@ export class AdaptiveFeedbackManager {
   private timeSinceLastHit: number = 0;
   private recentDamageTaken: number = 0;
   private currentLevel: FeedbackLevel = 'neutral';
-  private particles: Phaser.GameObjects.Particles.ParticleEmitterManager;
+  private particles: Phaser.GameObjects.Particles.ParticleEmitterManager | null = null;
   private excelEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   private struggleEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   
@@ -28,34 +28,36 @@ export class AdaptiveFeedbackManager {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     
-    // Initialize particle system
-    this.particles = scene.add.particles('particle');
-    
-    // Create particle emitters (initially disabled)
-    this.createParticleEmitters();
+    // Initialize particle system if the texture exists
+    if (scene.textures.exists('particle')) {
+      this.particles = scene.add.particles('particle');
+      
+      // Create particle emitters (initially disabled)
+      this.createParticleEmitters();
+    }
   }
 
   private createParticleEmitters() {
+    if (!this.particles) return;
+    
     // Positive feedback particles (colorful, energetic)
     this.excelEmitter = this.particles.createEmitter({
-      frame: '',
       lifespan: 800,
       speed: { min: 50, max: 100 },
       scale: { start: 0.4, end: 0 },
       quantity: 1,
-      blendMode: 'ADD',
+      blendMode: Phaser.BlendModes.ADD,
       tint: [0xD946EF, 0x8B5CF6, 0xF97316], // Vibrant colors
       on: false
     });
     
     // Negative feedback particles (slower, darker)
     this.struggleEmitter = this.particles.createEmitter({
-      frame: '',
       lifespan: 1200,
       speed: { min: 20, max: 40 },
       scale: { start: 0.3, end: 0 },
       quantity: 1,
-      blendMode: 'MULTIPLY',
+      blendMode: Phaser.BlendModes.MULTIPLY,
       tint: [0x1A1F2C, 0x222222, 0x403E43], // Dark colors
       gravityY: 20,
       on: false
@@ -70,8 +72,8 @@ export class AdaptiveFeedbackManager {
     this.currentLevel = 'neutral';
     
     // Disable particle emitters
-    if (this.excelEmitter) this.excelEmitter.on = false;
-    if (this.struggleEmitter) this.struggleEmitter.on = false;
+    if (this.excelEmitter) this.excelEmitter.active = false;
+    if (this.struggleEmitter) this.struggleEmitter.active = false;
   }
   
   public registerHit(): void {
@@ -140,11 +142,11 @@ export class AdaptiveFeedbackManager {
   private onFeedbackLevelChanged(): void {
     // Toggle appropriate particle emitters
     if (this.excelEmitter) {
-      this.excelEmitter.on = (this.currentLevel === 'excelling');
+      this.excelEmitter.active = (this.currentLevel === 'excelling');
     }
     
     if (this.struggleEmitter) {
-      this.struggleEmitter.on = (this.currentLevel === 'struggling');
+      this.struggleEmitter.active = (this.currentLevel === 'struggling');
     }
   }
   
@@ -161,7 +163,7 @@ export class AdaptiveFeedbackManager {
         this.EXCEL_COLOR,
         1,
         progress
-      );
+      ) as Phaser.Display.Color;
     } else {
       // Between struggling and neutral
       progress = this.performanceScore / 50; // 0 to 1
@@ -170,16 +172,19 @@ export class AdaptiveFeedbackManager {
         this.NEUTRAL_COLOR,
         1,
         progress
-      );
+      ) as Phaser.Display.Color;
     }
     
     // Apply tint to background or specific game elements
-    // This can be customized based on your game's visual style
-    const color = Phaser.Display.Color.GetColor(targetColor.r, targetColor.g, targetColor.b);
+    const color = Phaser.Display.Color.GetColor(
+      Math.floor(targetColor.red), 
+      Math.floor(targetColor.green), 
+      Math.floor(targetColor.blue)
+    );
     this.scene.cameras.main.setBackgroundColor(color);
   }
   
-  public setParticleTarget(target: Phaser.GameObjects.GameObject): void {
+  public setParticleTarget(target: Phaser.GameObjects.Components.Transform & Phaser.GameObjects.GameObject): void {
     if (this.excelEmitter) {
       this.excelEmitter.startFollow(target);
     }
