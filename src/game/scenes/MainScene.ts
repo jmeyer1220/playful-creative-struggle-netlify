@@ -10,6 +10,7 @@ type MainSceneCallbacks = {
   onHealthChange: (health: number) => void;
   onEnergyChange: (energy: number) => void;
   onFeedbackChange: (state: 'neutral' | 'positive' | 'negative') => void;
+  characterId?: string; // Added this to fix the error
 };
 
 export class MainScene extends Phaser.Scene {
