@@ -39,15 +39,6 @@ const Game: React.FC<GameProps> = ({ selectedCharacter }) => {
         </div>*}
         
         {/* Character info overlay */}
-        <div className="absolute top-2 left-2 glass-panel rounded-lg px-3 py-1.5 text-sm text-white/80 flex items-center gap-2">
-          <div className={`${selectedCharacter.color} size-3 rounded-full`}></div>
-          <span>{selectedCharacter.name}</span>
-        </div>
-        
-        {/* Level info */}
-        <div className="absolute top-2 right-2 glass-panel rounded-lg px-3 py-1.5 text-sm text-white/80">
-          Level 1: Grid Protocol
-        </div>
       </div>
     </div>
   );

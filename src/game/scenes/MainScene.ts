@@ -33,7 +33,7 @@ export class MainScene extends Phaser.Scene {
   private lastFeedbackUpdate: number = 0;
   private characterId: string;
   private levelGenerator!: LevelGenerator;
-  private currentLevel: string = 'Grid Protocol';
+  private currentLevel: string = 'Blank Canvas';
 
   constructor(config: { characterId: string }) {
     super({ key: 'MainScene' });
@@ -61,8 +61,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-    // Initialize level generator
-    this.levelGenerator = new LevelGenerator(this);
+    // Initialize level generator with character type
+    this.levelGenerator = new LevelGenerator(this, this.characterId);
     
     // Generate level
     const levelConfig = this.levelGenerator.generateLevel(this.currentLevel);
@@ -71,28 +71,84 @@ export class MainScene extends Phaser.Scene {
     const totalWidth = levelConfig.rooms.reduce((sum, room) => sum + room.width, 0);
     this.physics.world.setBounds(0, 0, totalWidth, 600);
     
+    // Create platforms from level config
+    this.platforms = this.createPlatformsFromConfig(levelConfig);
+    
+    // Create player after platforms
+    this.player = new Player(this, 100, 300, this.characterId);
+    
     // Enable camera follow
     this.cameras.main.setBounds(0, 0, totalWidth, 600);
     this.cameras.main.startFollow(this.player);
     
-    // Create platforms from level config
-    this.platforms = this.createPlatformsFromConfig(levelConfig);
+    // Setup controls
+    this.setupControls();
     
-    // Create player
-    this.player = new Player(this, 100, 300, this.characterId);
+    // Setup collisions
+    this.physics.add.collider(this.player, this.platforms);
     
-    // Create enemies at strategic positions
-    this.enemies = this.physics.add.group({
-      classType: Enemy,
-      runChildUpdate: true
+    // Initialize feedback system
+    this.feedbackManager = new AdaptiveFeedbackManager(this);
+    this.feedbackManager.setParticleTarget(this.player);
+    
+    // Debug visualization
+    this.debugDrawLevel(levelConfig);
+  }
+
+  private createPlatformsFromConfig(levelConfig: LevelConfig) {
+    const platforms = this.physics.add.staticGroup();
+    
+    levelConfig.rooms.forEach(room => {
+      // Draw room boundary for debugging
+      const graphics = this.add.graphics();
+      graphics.lineStyle(2, 0x00ff00, 1);
+      graphics.strokeRect(room.x, room.y, room.width, room.height);
+      
+      // Create platforms
+      room.platforms.forEach(platform => {
+        const plt = platforms.create(
+          platform.x + room.x,
+          platform.y,
+          'platform'
+        );
+        plt.setScale(platform.width / 32, platform.height / 32);
+        plt.refreshBody();
+        
+        // Add visual debug for platform
+        const debugGraphics = this.add.graphics();
+        debugGraphics.lineStyle(1, 0xff0000, 1);
+        debugGraphics.strokeRect(
+          platform.x + room.x,
+          platform.y,
+          platform.width,
+          platform.height
+        );
+      });
     });
     
-    // Position enemies on platforms
-    this.createEnemy(600, 300); // On middle platform
-    this.createEnemy(700, 150); // On high platform
-    this.createEnemy(250, 450); // On ground level
+    return platforms;
+  }
+
+  private debugDrawLevel(levelConfig: LevelConfig) {
+    const debugGraphics = this.add.graphics();
+    debugGraphics.lineStyle(2, 0x00ff00, 1);
     
-    // Setup both arrow keys and WASD
+    // Draw room boundaries
+    levelConfig.rooms.forEach(room => {
+      debugGraphics.strokeRect(room.x, room.y, room.width, room.height);
+    });
+    
+    // Draw grid for reference
+    debugGraphics.lineStyle(1, 0x333333, 0.5);
+    for (let x = 0; x < this.physics.world.bounds.width; x += 32) {
+      debugGraphics.lineBetween(x, 0, x, 600);
+    }
+    for (let y = 0; y < 600; y += 32) {
+      debugGraphics.lineBetween(0, y, this.physics.world.bounds.width, y);
+    }
+  }
+
+  private setupControls() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.wasdKeys = {
       up: this.input.keyboard.addKey('W'),
@@ -100,63 +156,8 @@ export class MainScene extends Phaser.Scene {
       left: this.input.keyboard.addKey('A'),
       right: this.input.keyboard.addKey('D'),
     };
-    
-    // Setup action keys
     this.attackKey = this.input.keyboard.addKey('Z');
     this.dashKey = this.input.keyboard.addKey('X');
-    
-    // Setup collisions
-    this.physics.add.collider(this.player, this.platforms);
-    this.physics.add.collider(this.enemies, this.platforms);
-    
-    // Setup overlap for combat
-    this.physics.add.overlap(
-      this.player.getAttackHitbox(),
-      this.enemies,
-      this.handlePlayerAttack,
-      undefined,
-      this
-    );
-    
-    this.physics.add.overlap(
-      this.player,
-      this.enemies,
-      this.handleEnemyCollision,
-      undefined,
-      this
-    );
-    
-    // Initialize adaptive feedback system
-    this.feedbackManager = new AdaptiveFeedbackManager(this);
-    this.feedbackManager.setParticleTarget(this.player);
-    
-    // Update HUD with initial values
-    this.callbacks.onHealthChange(this.player.getHealth());
-    this.callbacks.onInspirationChange(this.player.getEnergy());
-    this.updateHUDFeedback();
-    
-    // Debug physics
-    this.physics.world.createDebugGraphic();
-    
-    console.log('Scene created, player position:', this.player.x, this.player.y);
-  }
-
-  private createPlatformsFromConfig(levelConfig: LevelConfig) {
-    const platforms = this.physics.add.staticGroup();
-    
-    levelConfig.rooms.forEach(room => {
-      room.platforms.forEach(platform => {
-        platforms.create(
-          platform.x + room.x,
-          platform.y,
-          'platform'
-        )
-        .setScale(platform.width / 32, platform.height / 32)
-        .refreshBody();
-      });
-    });
-    
-    return platforms;
   }
 
   update() {
@@ -166,59 +167,13 @@ export class MainScene extends Phaser.Scene {
     const left = this.cursors.left.isDown || this.wasdKeys.left.isDown;
     const right = this.cursors.right.isDown || this.wasdKeys.right.isDown;
     const up = this.cursors.up.isDown || this.wasdKeys.up.isDown;
-
-    // Update player movement
-    if (left) {
-      this.player.setVelocityX(-160);
-    } else if (right) {
-      this.player.setVelocityX(160);
-    } else {
-      this.player.setVelocityX(0);
-    }
-
-    // Handle jumping
-    if (up && this.player.body.touching.down) {
-      this.player.setVelocityY(-330);
-    }
-
-    console.log('Player position:', this.player.x, this.player.y);
-
-    // Update player with input state
+    
+    // Update player with combined inputs
     this.player.update(
-      this.cursors,
+      { left: { isDown: left }, right: { isDown: right }, up: { isDown: up } } as any,
       this.attackKey.isDown,
       this.dashKey.isDown
     );
-    
-    // Update adaptive feedback system
-    this.feedbackManager.update(this.time.delta);
-    
-    // Get player buffs based on performance
-    const { speedMultiplier, dashCooldownMultiplier } = this.feedbackManager.getPlayerBuffs();
-    
-    // Update player with input and buffs
-    this.player.update(
-      this.cursors,
-      this.attackKey.isDown,
-      this.dashKey.isDown,
-      speedMultiplier,
-      dashCooldownMultiplier
-    );
-    
-    // Update HUD
-    this.callbacks.onHealthChange(this.player.getHealth());
-    this.callbacks.onInspirationChange(this.player.getEnergy());
-    
-    // Update feedback state in HUD (not too frequently)
-    if (this.time.now - this.lastFeedbackUpdate > 500) {
-      this.updateHUDFeedback();
-      this.lastFeedbackUpdate = this.time.now;
-    }
-    
-    // Enemies chase player if within range
-    this.enemies.getChildren().forEach((enemy) => {
-      (enemy as Enemy).chasePlayer(this.player);
-    });
   }
 
   private createEnemy(x: number, y: number) {
