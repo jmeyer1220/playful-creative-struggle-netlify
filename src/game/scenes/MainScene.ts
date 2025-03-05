@@ -48,6 +48,9 @@ export class MainScene extends Phaser.Scene {
     // Create dark background with grid
     this.cameras.main.setBackgroundColor('#111111');
     
+    // Create particle texture
+    createParticleTexture(this);
+    
     // Create platforms (now with grid)
     this.platforms = createPlatforms(this);
     
@@ -103,9 +106,9 @@ export class MainScene extends Phaser.Scene {
     this.updateHUDFeedback();
   }
 
-  update(time: number, delta: number) {
+  update() {
     // Update adaptive feedback system
-    this.feedbackManager.update(delta);
+    this.feedbackManager.update(this.time.delta);
     
     // Get player buffs based on performance
     const { speedMultiplier, dashCooldownMultiplier } = this.feedbackManager.getPlayerBuffs();
@@ -124,9 +127,9 @@ export class MainScene extends Phaser.Scene {
     this.callbacks.onEnergyChange(this.player.getEnergy());
     
     // Update feedback state in HUD (not too frequently)
-    if (time - this.lastFeedbackUpdate > 500) {
+    if (this.time.now - this.lastFeedbackUpdate > 500) {
       this.updateHUDFeedback();
-      this.lastFeedbackUpdate = time;
+      this.lastFeedbackUpdate = this.time.now;
     }
     
     // Enemies chase player if within range

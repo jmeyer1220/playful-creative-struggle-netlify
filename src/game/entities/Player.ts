@@ -102,29 +102,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.attackCooldown = time + 400; // Attack cooldown of 400ms
     }
     
-    // Turn off attack hitbox after 200ms
-    if (this.isAttackingFlag && time > this.attackCooldown - 200) {
-      this.isAttackingFlag = false;
-      (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = false;
-    }
-    
-    // Handle dashing with performance-based cooldown adjustment
-    const currentDashCooldown = this.baseDashCooldownTime * dashCooldownMultiplier;
-    
-    if (dashKeyDown && time > this.dashCooldown && this.energy >= 20) {
-      this.dash();
-      this.energy = Math.max(0, this.energy - 20); // Dash costs 20 energy
-      this.dashCooldown = time + currentDashCooldown;
-    }
-    
-    // Turn off dash after 200ms
-    if (this.isDashingFlag && time > this.dashCooldown - (this.baseDashCooldownTime - 200)) {
-      this.isDashingFlag = false;
-    }
-    
-    // Regenerate energy
-    if (time % 10 === 0 && this.energy < 100) {
-      this.energy = Math.min(100, this.energy + 0.1);
+    // Update particle emitter position
+    if (this.specialAttackEmitter) {
+      this.specialAttackEmitter.setPosition(this.x, this.y);
     }
     
     // Update attack hitbox position
@@ -314,47 +294,57 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   // Effect creation methods
   private createPaintEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
+      follow: this,  // Make particles follow the player
       speed: { min: 100, max: 200 },
       scale: { start: 0.5, end: 0 },
       blendMode: 'ADD',
       tint: 0xff4f4f,
+      lifespan: 1000
     });
   }
 
   private createDesignEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
+      follow: this,
       speed: { min: 150, max: 250 },
       scale: { start: 0.3, end: 0 },
       blendMode: 'ADD',
       tint: 0x4fc3f7,
+      lifespan: 1000
     });
   }
 
   private createInkEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
+      follow: this,
       speed: { min: 120, max: 180 },
       scale: { start: 0.4, end: 0 },
       blendMode: 'ADD',
       tint: 0x2c2c2c,
+      lifespan: 1000
     });
   }
 
   private createSculptEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
+      follow: this,
       speed: { min: 80, max: 150 },
       scale: { start: 0.6, end: 0 },
       blendMode: 'ADD',
       tint: 0x8d6e63,
+      lifespan: 1000
     });
   }
 
   private createCodeEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
+      follow: this,
       speed: { min: 200, max: 300 },
       scale: { start: 0.2, end: 0 },
       blendMode: 'ADD',
       tint: 0x00ff00,
+      lifespan: 1000
     });
   }
 }
