@@ -4,6 +4,8 @@ import { Enemy } from '../entities/Enemy';
 import { createPlatforms } from '../utils/platforms';
 import { AdaptiveFeedbackManager, FeedbackLevel } from '../utils/adaptiveFeedback';
 import { createParticleTexture } from '../utils/assetLoader';
+import { LevelGenerator } from '../utils/levelGenerator';
+import { LevelConfig } from '../types/level';
 
 type MainSceneCallbacks = {
   onHealthChange: (health: number) => void;
@@ -30,6 +32,8 @@ export class MainScene extends Phaser.Scene {
   private feedbackManager!: AdaptiveFeedbackManager;
   private lastFeedbackUpdate: number = 0;
   private characterId: string;
+  private levelGenerator!: LevelGenerator;
+  private currentLevel: string = 'Grid Protocol';
 
   constructor(config: { characterId: string }) {
     super({ key: 'MainScene' });
@@ -57,12 +61,22 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-    // Set world bounds and physics
-    this.physics.world.setBounds(0, 0, 800, 600);
-    this.physics.world.gravity.y = 500;
+    // Initialize level generator
+    this.levelGenerator = new LevelGenerator(this);
     
-    // Create platforms
-    this.platforms = createPlatforms(this);
+    // Generate level
+    const levelConfig = this.levelGenerator.generateLevel(this.currentLevel);
+    
+    // Set world bounds based on level size
+    const totalWidth = levelConfig.rooms.reduce((sum, room) => sum + room.width, 0);
+    this.physics.world.setBounds(0, 0, totalWidth, 600);
+    
+    // Enable camera follow
+    this.cameras.main.setBounds(0, 0, totalWidth, 600);
+    this.cameras.main.startFollow(this.player);
+    
+    // Create platforms from level config
+    this.platforms = this.createPlatformsFromConfig(levelConfig);
     
     // Create player
     this.player = new Player(this, 100, 300, this.characterId);
@@ -125,6 +139,24 @@ export class MainScene extends Phaser.Scene {
     this.physics.world.createDebugGraphic();
     
     console.log('Scene created, player position:', this.player.x, this.player.y);
+  }
+
+  private createPlatformsFromConfig(levelConfig: LevelConfig) {
+    const platforms = this.physics.add.staticGroup();
+    
+    levelConfig.rooms.forEach(room => {
+      room.platforms.forEach(platform => {
+        platforms.create(
+          platform.x + room.x,
+          platform.y,
+          'platform'
+        )
+        .setScale(platform.width / 32, platform.height / 32)
+        .refreshBody();
+      });
+    });
+    
+    return platforms;
   }
 
   update() {
