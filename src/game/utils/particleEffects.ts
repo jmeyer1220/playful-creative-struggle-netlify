@@ -7,12 +7,22 @@ export function createInspirationEffect(scene: Phaser.Scene, characterType: stri
     coder: { start: 0x00FF00, end: 0x008000 }
   }[characterType] || { start: 0xFFFFFF, end: 0xCCCCCC };
 
-  return scene.add.particles(0, 0, 'particle', {
+  const emitter = scene.add.particles(0, 0, {
+    follow: null, // Will be set to player
     lifespan: 1000,
     speed: { min: 50, max: 100 },
     scale: { start: 0.5, end: 0 },
     blendMode: 'ADD',
     tint: { start: particleColors.start, end: particleColors.end },
-    emitting: false
+    emitting: false,
+    // Keep particles close to player
+    bounds: {
+      x: -20,
+      y: -20,
+      width: 40,
+      height: 40
+    }
   });
+
+  return emitter;
 } 

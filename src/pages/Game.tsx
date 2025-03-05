@@ -30,13 +30,13 @@ const Game: React.FC<GameProps> = ({ selectedCharacter }) => {
         />
         
         {/* Grid Overlay */}
-        <div className="absolute inset-0 pointer-events-none">
+        {/*<div className="absolute inset-0 pointer-events-none">
           <div className="w-full h-full grid grid-cols-32 grid-rows-24 opacity-10">
             {Array.from({ length: 768 }).map((_, i) => (
               <div key={i} className="border-[0.5px] border-white/10"></div>
             ))}
           </div>
-        </div>
+        </div>*}
         
         {/* Character info overlay */}
         <div className="absolute top-2 left-2 glass-panel rounded-lg px-3 py-1.5 text-sm text-white/80 flex items-center gap-2">

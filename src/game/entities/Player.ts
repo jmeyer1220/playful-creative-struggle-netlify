@@ -133,28 +133,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private attack() {
+    if (this.attackCooldown > 0) return;
+    
+    const direction = this.facingRight ? 1 : -1;
+    
+    // Position attack hitbox
+    this.attackHitbox.setPosition(this.x + (35 * direction), this.y);
+    this.attackHitbox.setSize(50, 40);
+    (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = true;
+    
+    // Emit particles based on character type
+    if (this.specialAttackEmitter) {
+      // Emit in the direction the player is facing
+      this.specialAttackEmitter.setPosition(this.x + (20 * direction), this.y);
+      this.specialAttackEmitter.explode(10);
+    }
+    
+    this.attackCooldown = 400;
     this.isAttackingFlag = true;
     
-    switch (this.characterType) {
-      case 'painter':
-        this.paintAttack();
-        break;
-      case 'designer':
-        this.designAttack();
-        break;
-      case 'writer':
-        this.inkAttack();
-        break;
-      case 'sculptor':
-        this.sculptAttack();
-        break;
-      case 'coder':
-        this.codeAttack();
-        break;
-    }
-
     // Reset attack state after delay
-    this.scene.time.delayedCall(400, () => {
+    this.scene.time.delayedCall(200, () => {
       this.isAttackingFlag = false;
       (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = false;
     });
@@ -310,12 +309,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   // Effect creation methods
   private createPaintEffects() {
     this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
-      follow: this,  // Make particles follow the player
+      follow: this,
       speed: { min: 100, max: 200 },
       scale: { start: 0.5, end: 0 },
-      blendMode: 'ADD',
+      blendMode: Phaser.BlendModes.ADD,
       tint: 0xff4f4f,
-      lifespan: 1000
+      lifespan: 1000,
+      gravityY: 100,
+      quantity: 2,
+      frequency: 100
     });
   }
 
@@ -324,9 +326,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       follow: this,
       speed: { min: 150, max: 250 },
       scale: { start: 0.3, end: 0 },
-      blendMode: 'ADD',
+      blendMode: Phaser.BlendModes.ADD,
       tint: 0x4fc3f7,
-      lifespan: 1000
+      lifespan: 800,
+      angle: { min: -30, max: 30 },
+      quantity: 3,
+      frequency: 80
     });
   }
 
@@ -335,9 +340,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       follow: this,
       speed: { min: 120, max: 180 },
       scale: { start: 0.4, end: 0 },
-      blendMode: 'ADD',
+      blendMode: Phaser.BlendModes.ADD,
       tint: 0x2c2c2c,
-      lifespan: 1000
+      lifespan: 1200,
+      gravityY: 200,
+      quantity: 4,
+      frequency: 60
     });
   }
 
@@ -346,9 +354,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       follow: this,
       speed: { min: 80, max: 150 },
       scale: { start: 0.6, end: 0 },
-      blendMode: 'ADD',
-      tint: 0x8d6e63,
-      lifespan: 1000
+      blendMode: Phaser.BlendModes.ADD,
+      tint: 0x964B00,
+      lifespan: 1500,
+      gravityY: 300,
+      quantity: 1,
+      frequency: 120
     });
   }
 
@@ -356,10 +367,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
       follow: this,
       speed: { min: 200, max: 300 },
-      scale: { start: 0.2, end: 0 },
-      blendMode: 'ADD',
+      scale: { start: 0.3, end: 0 },
+      blendMode: Phaser.BlendModes.ADD,
       tint: 0x00ff00,
-      lifespan: 1000
+      lifespan: 600,
+      quantity: 5,
+      frequency: 50,
+      emitZone: {
+        type: 'random',
+        source: new Phaser.Geom.Rectangle(-20, -20, 40, 40)
+      }
     });
   }
 }
