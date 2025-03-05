@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { MainScene } from '../game/scenes/MainScene';
+import { TitleScene } from '../game/scenes/TitleScene';
 import { HUD } from './HUD';
 import { cn } from '@/lib/utils';
 
@@ -44,7 +45,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className, characterId =
             debug: true
           }
         },
-        scene: [mainScene],
+        scene: [TitleScene, mainScene],
         render: {
           pixelArt: true, // Enable pixel art mode for sharper retro graphics
           antialias: false, // Disable antialiasing for pixel art
