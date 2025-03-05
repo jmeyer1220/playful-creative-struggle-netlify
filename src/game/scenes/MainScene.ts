@@ -6,11 +6,16 @@ import { AdaptiveFeedbackManager, FeedbackLevel } from '../utils/adaptiveFeedbac
 import { createParticleTexture } from '../utils/assetLoader';
 import { LevelGenerator } from '../utils/levelGenerator';
 import { LevelConfig } from '../types/level';
+import { CREATIVE_JOURNEY_LEVELS } from '../constants/creativeJourneyLevels';
+import { BackgroundManager } from '../utils/backgroundManager';
+import { LevelTransition } from '../utils/levelTransition';
+import { CHARACTER_EFFECTS } from '../constants/characterEffects';
 
 type MainSceneCallbacks = {
   onHealthChange: (health: number) => void;
   onInspirationChange: (inspiration: number) => void;
   onFeedbackChange: (state: 'neutral' | 'positive' | 'negative') => void;
+  onLevelChange: (level: { name: string; description: string; number: number }) => void;
   characterId?: string;
 };
 
@@ -33,7 +38,10 @@ export class MainScene extends Phaser.Scene {
   private lastFeedbackUpdate: number = 0;
   private characterId: string;
   private levelGenerator!: LevelGenerator;
+  private backgroundManager!: BackgroundManager;
+  private levelTransition!: LevelTransition;
   private currentLevel: string = 'Blank Canvas';
+  private levelConfig!: LevelConfig;
 
   constructor(config: { characterId: string }) {
     super({ key: 'MainScene' });
@@ -61,25 +69,32 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-    // Initialize level generator with character type
+    // Initialize managers
     this.levelGenerator = new LevelGenerator(this, this.characterId);
+    this.backgroundManager = new BackgroundManager(this, this.currentLevel, this.characterId);
+    this.levelTransition = new LevelTransition(this);
     
-    // Generate level
-    const levelConfig = this.levelGenerator.generateLevel(this.currentLevel);
+    // Generate level and store config
+    this.levelConfig = this.levelGenerator.generateLevel(this.currentLevel);
+    
+    // Create background first
+    this.backgroundManager.createBackground();
     
     // Set world bounds based on level size
-    const totalWidth = levelConfig.rooms.reduce((sum, room) => sum + room.width, 0);
+    const totalWidth = this.levelConfig.rooms.reduce((sum, room) => sum + room.width, 0);
     this.physics.world.setBounds(0, 0, totalWidth, 600);
     
-    // Create platforms from level config
-    this.platforms = this.createPlatformsFromConfig(levelConfig);
+    // Create platforms with themed visuals
+    this.platforms = this.createThemedPlatforms(this.levelConfig);
     
-    // Create player after platforms
+    // Create player with character-specific effects
     this.player = new Player(this, 100, 300, this.characterId);
+    this.player.initializeEffects(CHARACTER_EFFECTS[this.characterId]);
     
-    // Enable camera follow
+    // Camera setup with smooth follow
     this.cameras.main.setBounds(0, 0, totalWidth, 600);
-    this.cameras.main.startFollow(this.player);
+    this.cameras.main.startFollow(this.player, true, 0.09, 0.09);
+    this.cameras.main.setBackgroundColor(this.levelConfig.theme.backgroundColor);
     
     // Setup controls
     this.setupControls();
@@ -92,41 +107,74 @@ export class MainScene extends Phaser.Scene {
     this.feedbackManager.setParticleTarget(this.player);
     
     // Debug visualization
-    this.debugDrawLevel(levelConfig);
+    this.debugDrawLevel(this.levelConfig);
+    
+    // Update HUD with initial values and level info
+    this.callbacks.onHealthChange(this.player.getHealth());
+    this.callbacks.onInspirationChange(this.player.getInspiration());
+    this.callbacks.onLevelChange({
+      name: this.currentLevel,
+      description: CREATIVE_JOURNEY_LEVELS[this.currentLevel].description,
+      number: this.getLevelNumber(this.currentLevel)
+    });
   }
 
-  private createPlatformsFromConfig(levelConfig: LevelConfig) {
+  private createThemedPlatforms(levelConfig: LevelConfig) {
     const platforms = this.physics.add.staticGroup();
+    const theme = CREATIVE_JOURNEY_LEVELS[this.currentLevel];
     
     levelConfig.rooms.forEach(room => {
-      // Draw room boundary for debugging
-      const graphics = this.add.graphics();
-      graphics.lineStyle(2, 0x00ff00, 1);
-      graphics.strokeRect(room.x, room.y, room.width, room.height);
-      
-      // Create platforms
       room.platforms.forEach(platform => {
         const plt = platforms.create(
           platform.x + room.x,
           platform.y,
           'platform'
         );
+        
+        // Apply themed visuals
+        const style = CHARACTER_EFFECTS[this.characterId].platformStyle;
+        this.applyPlatformStyle(plt, style, theme);
+        
         plt.setScale(platform.width / 32, platform.height / 32);
         plt.refreshBody();
-        
-        // Add visual debug for platform
-        const debugGraphics = this.add.graphics();
-        debugGraphics.lineStyle(1, 0xff0000, 1);
-        debugGraphics.strokeRect(
-          platform.x + room.x,
-          platform.y,
-          platform.width,
-          platform.height
-        );
       });
     });
     
     return platforms;
+  }
+
+  private applyPlatformStyle(
+    platform: Phaser.Physics.Arcade.Sprite, 
+    style: any, 
+    theme: any
+  ) {
+    const graphics = this.add.graphics();
+    
+    if (style.border) {
+      graphics.lineStyle(2, theme.platformColor, style.opacity);
+      graphics.strokeRect(0, 0, platform.width, platform.height);
+    }
+    
+    if (style.gridLines) {
+      // Add grid pattern
+      const gridSize = 8;
+      graphics.lineStyle(1, theme.gridColor, 0.3);
+      for (let x = gridSize; x < platform.width; x += gridSize) {
+        graphics.lineBetween(x, 0, x, platform.height);
+      }
+      for (let y = gridSize; y < platform.height; y += gridSize) {
+        graphics.lineBetween(0, y, platform.width, y);
+      }
+    }
+    
+    // Create texture from graphics
+    const texture = graphics.generateTexture(
+      `platform-${this.characterId}-${this.currentLevel}`,
+      platform.width,
+      platform.height
+    );
+    platform.setTexture(texture);
+    graphics.destroy();
   }
 
   private debugDrawLevel(levelConfig: LevelConfig) {
@@ -245,5 +293,22 @@ export class MainScene extends Phaser.Scene {
         source: new Phaser.Geom.Rectangle(0, 0, 800, 600)
       }
     });
+  }
+
+  private getLevelNumber(levelName: string): number {
+    const levelOrder = [
+      'Blank Canvas',
+      'Creative Block',
+      'Flow State',
+      'Refinement',
+      'Release'
+    ];
+    return levelOrder.indexOf(levelName) + 1;
+  }
+
+  async transitionToNextLevel(nextLevel: string) {
+    await this.levelTransition.transitionTo(nextLevel);
+    this.currentLevel = nextLevel;
+    this.scene.restart();
   }
 }

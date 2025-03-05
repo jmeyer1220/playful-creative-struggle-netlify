@@ -6,9 +6,14 @@ type HUDProps = {
   inspiration: number; // renamed from energy
   characterName: string;
   feedbackState: 'neutral' | 'positive' | 'negative';
+  level: {
+    name: string;
+    description: string;
+    number: number;
+  };
 };
 
-export const HUD: React.FC<HUDProps> = ({ health, inspiration, characterName, feedbackState }) => {
+export const HUD: React.FC<HUDProps> = ({ health, inspiration, characterName, feedbackState, level }) => {
   return (
     <div className="absolute inset-0 pointer-events-none font-['Fira_Code']">
       {/* Top Bar */}
@@ -56,11 +61,16 @@ export const HUD: React.FC<HUDProps> = ({ health, inspiration, characterName, fe
 
         {/* Level Info - Right Side */}
         <div className="flex items-center gap-2">
-          <div className="text-cyan-400/70 text-xs">LEVEL</div>
-          <div className="text-cyan-400 text-sm tracking-wide">
-            1: GRID PROTOCOL
-          </div>
+          <span className="text-cyan-400 text-xs">LEVEL {level.number}:</span>
+          <span className="text-cyan-300 text-sm tracking-wider">{level.name}</span>
         </div>
+      </div>
+
+      {/* Level Description - Optional tooltip or subtle display */}
+      <div className="absolute top-14 right-4 max-w-xs text-right">
+        <span className="text-cyan-400/60 text-xs italic">
+          {level.description}
+        </span>
       </div>
 
       {/* Bottom Controls */}

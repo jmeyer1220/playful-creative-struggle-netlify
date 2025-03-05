@@ -15,15 +15,21 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className, characterId =
   const [health, setHealth] = React.useState(100);
   const [inspiration, setInspiration] = React.useState(100);
   const [feedbackState, setFeedbackState] = React.useState<'neutral' | 'positive' | 'negative'>('neutral');
+  const [level, setLevel] = React.useState({
+    name: 'Blank Canvas',
+    description: 'The intimidating beginning of any creative project',
+    number: 1
+  });
 
   // Initialize game
   useEffect(() => {
     if (gameContainerRef.current && !gameInstanceRef.current) {
       const mainScene = new MainScene({
-        onHealthChange: (newHealth) => setHealth(newHealth),
-        onInspirationChange: (newInspiration) => setInspiration(newInspiration),
-        onFeedbackChange: (state) => setFeedbackState(state),
-        characterId: characterId
+        onHealthChange: setHealth,
+        onInspirationChange: setInspiration,
+        onFeedbackChange: setFeedbackState,
+        onLevelChange: setLevel,
+        characterId
       });
 
       const config: Phaser.Types.Core.GameConfig = {
@@ -82,7 +88,13 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className, characterId =
         ref={gameContainerRef} 
         className="w-full h-full"
       />
-      <HUD health={health} energy={inspiration} feedbackState={feedbackState} />
+      <HUD
+        health={health}
+        inspiration={inspiration}
+        characterName={characterId}
+        feedbackState={feedbackState}
+        level={level}
+      />
     </div>
   );
 };
