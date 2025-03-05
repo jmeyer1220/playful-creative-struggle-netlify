@@ -50,28 +50,63 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     (this.attackHitbox.body as Phaser.Physics.Arcade.Body).allowGravity = false;
     (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = false;
     
-    // Initialize character-specific effects
-    this.initializeCharacterEffects();
+    // Initialize character-specific effects immediately
+    this.initializeEffects();
   }
 
-  private initializeCharacterEffects() {
+  private initializeEffects() {
+    // Create base particle emitter
+    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+      follow: this,
+      followOffset: { x: 0, y: 0 },
+      lifespan: 1000,
+      speed: { min: 100, max: 200 },
+      scale: { start: 0.4, end: 0 },
+      blendMode: Phaser.BlendModes.ADD,
+      tint: this.getCharacterColor(),
+      emitting: false,
+      bounds: {
+        x: -20,
+        y: -20,
+        width: 40,
+        height: 40
+      }
+    });
+
+    // Add character-specific configurations
     switch (this.characterType) {
-      case 'painter':
-        this.createPaintEffects();
-        break;
       case 'designer':
-        this.createDesignEffects();
+        this.specialAttackEmitter.setFrequency(80);
+        this.specialAttackEmitter.setSpeed({ min: 150, max: 250 });
+        break;
+      case 'painter':
+        this.specialAttackEmitter.setFrequency(100);
+        this.specialAttackEmitter.setGravityY(100);
         break;
       case 'writer':
-        this.createInkEffects();
+        this.specialAttackEmitter.setFrequency(60);
+        this.specialAttackEmitter.setGravityY(200);
         break;
       case 'sculptor':
-        this.createSculptEffects();
+        this.specialAttackEmitter.setFrequency(120);
+        this.specialAttackEmitter.setGravityY(300);
         break;
       case 'coder':
-        this.createCodeEffects();
+        this.specialAttackEmitter.setFrequency(50);
+        this.specialAttackEmitter.setGravityY(200);
         break;
     }
+  }
+
+  private getCharacterColor(): number {
+    const colors = {
+      designer: 0x4fc3f7,
+      painter: 0xff4f4f,
+      writer: 0x2c2c2c,
+      sculptor: 0x964B00,
+      coder: 0x00ff00
+    };
+    return colors[this.characterType as keyof typeof colors] || 0xffffff;
   }
 
   update(
@@ -115,11 +150,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (attackKeyDown && time > this.attackCooldown) {
       this.attack();
       this.attackCooldown = time + 400; // Attack cooldown of 400ms
-    }
-    
-    // Update particle emitter position
-    if (this.specialAttackEmitter) {
-      this.specialAttackEmitter.setPosition(this.x, this.y);
     }
     
     // Update attack hitbox position
@@ -304,79 +334,5 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.attackHitbox.setPosition(this.x + (35 * direction), this.y);
     this.attackHitbox.setSize(50, 40);
     (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = true;
-  }
-
-  // Effect creation methods
-  private createPaintEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
-      follow: this,
-      speed: { min: 100, max: 200 },
-      scale: { start: 0.5, end: 0 },
-      blendMode: Phaser.BlendModes.ADD,
-      tint: 0xff4f4f,
-      lifespan: 1000,
-      gravityY: 100,
-      quantity: 2,
-      frequency: 100
-    });
-  }
-
-  private createDesignEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
-      follow: this,
-      speed: { min: 150, max: 250 },
-      scale: { start: 0.3, end: 0 },
-      blendMode: Phaser.BlendModes.ADD,
-      tint: 0x4fc3f7,
-      lifespan: 800,
-      angle: { min: -30, max: 30 },
-      quantity: 3,
-      frequency: 80
-    });
-  }
-
-  private createInkEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
-      follow: this,
-      speed: { min: 120, max: 180 },
-      scale: { start: 0.4, end: 0 },
-      blendMode: Phaser.BlendModes.ADD,
-      tint: 0x2c2c2c,
-      lifespan: 1200,
-      gravityY: 200,
-      quantity: 4,
-      frequency: 60
-    });
-  }
-
-  private createSculptEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
-      follow: this,
-      speed: { min: 80, max: 150 },
-      scale: { start: 0.6, end: 0 },
-      blendMode: Phaser.BlendModes.ADD,
-      tint: 0x964B00,
-      lifespan: 1500,
-      gravityY: 300,
-      quantity: 1,
-      frequency: 120
-    });
-  }
-
-  private createCodeEffects() {
-    this.specialAttackEmitter = this.scene.add.particles(this.x, this.y, 'particle', {
-      follow: this,
-      speed: { min: 200, max: 300 },
-      scale: { start: 0.3, end: 0 },
-      blendMode: Phaser.BlendModes.ADD,
-      tint: 0x00ff00,
-      lifespan: 600,
-      quantity: 5,
-      frequency: 50,
-      emitZone: {
-        type: 'random',
-        source: new Phaser.Geom.Rectangle(-20, -20, 40, 40)
-      }
-    });
   }
 }
