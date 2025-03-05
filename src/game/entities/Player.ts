@@ -1,5 +1,5 @@
-
 import Phaser from 'phaser';
+import { CharacterType } from '@/data/characters';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private health: number = 100;
@@ -15,9 +15,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private invulnerableUntil: number = 0;
   private baseMovementSpeed: number = 160;
   private baseDashCooldownTime: number = 800;
+  private characterType: string;
+  private specialAttackEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, characterType: string) {
     super(scene, x, y, 'player');
+    this.characterType = characterType;
     scene.add.existing(this);
     scene.physics.add.existing(this);
     
@@ -31,6 +34,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this.attackHitbox, false);
     (this.attackHitbox.body as Phaser.Physics.Arcade.Body).allowGravity = false;
     (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = false;
+    
+    // Initialize character-specific effects
+    this.initializeCharacterEffects();
+  }
+
+  private initializeCharacterEffects() {
+    switch (this.characterType) {
+      case 'painter':
+        this.createPaintEffects();
+        break;
+      case 'designer':
+        this.createDesignEffects();
+        break;
+      case 'writer':
+        this.createInkEffects();
+        break;
+      case 'sculptor':
+        this.createSculptEffects();
+        break;
+      case 'coder':
+        this.createCodeEffects();
+        break;
+    }
   }
 
   update(
@@ -113,11 +139,30 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private attack() {
     this.isAttackingFlag = true;
-    (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = true;
     
-    // Position hitbox based on facing direction
-    const hitboxOffsetX = this.facingRight ? 20 : -20;
-    this.attackHitbox.setPosition(this.x + hitboxOffsetX, this.y);
+    switch (this.characterType) {
+      case 'painter':
+        this.paintAttack();
+        break;
+      case 'designer':
+        this.designAttack();
+        break;
+      case 'writer':
+        this.inkAttack();
+        break;
+      case 'sculptor':
+        this.sculptAttack();
+        break;
+      case 'coder':
+        this.codeAttack();
+        break;
+    }
+
+    // Reset attack state after delay
+    this.scene.time.delayedCall(400, () => {
+      this.isAttackingFlag = false;
+      (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = false;
+    });
   }
 
   private dash() {
@@ -186,5 +231,130 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   getEnergy(): number {
     return this.energy;
+  }
+
+  // Character-specific attack implementations
+  private paintAttack() {
+    // Wide-arc paint splash attack
+    const direction = this.facingRight ? 1 : -1;
+    this.specialAttackEmitter?.setPosition(this.x, this.y);
+    this.specialAttackEmitter?.explode(20);
+    
+    // Create wide hitbox
+    this.attackHitbox.setPosition(this.x + (30 * direction), this.y);
+    this.attackHitbox.setSize(60, 40);
+    (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = true;
+  }
+
+  private designAttack() {
+    // Precise geometric shapes attack
+    const direction = this.facingRight ? 1 : -1;
+    
+    // Create triangle-shaped attack pattern
+    for (let i = 0; i < 3; i++) {
+      this.scene.time.delayedCall(i * 100, () => {
+        const angle = (i * 45 - 45) * direction;
+        this.specialAttackEmitter?.setPosition(this.x, this.y);
+        this.specialAttackEmitter?.explode(5);
+      });
+    }
+    
+    this.attackHitbox.setPosition(this.x + (40 * direction), this.y);
+    this.attackHitbox.setSize(50, 50);
+    (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = true;
+  }
+
+  private inkAttack() {
+    // Quick successive ink blots
+    const direction = this.facingRight ? 1 : -1;
+    
+    for (let i = 0; i < 4; i++) {
+      this.scene.time.delayedCall(i * 50, () => {
+        this.specialAttackEmitter?.setPosition(this.x + (20 * direction), this.y);
+        this.specialAttackEmitter?.explode(3);
+      });
+    }
+    
+    this.attackHitbox.setPosition(this.x + (30 * direction), this.y);
+    this.attackHitbox.setSize(40, 30);
+    (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = true;
+  }
+
+  private sculptAttack() {
+    // Heavy, powerful stone attack
+    const direction = this.facingRight ? 1 : -1;
+    
+    this.specialAttackEmitter?.setPosition(this.x + (20 * direction), this.y);
+    this.specialAttackEmitter?.explode(10);
+    
+    // Larger, more powerful hitbox
+    this.attackHitbox.setPosition(this.x + (25 * direction), this.y);
+    this.attackHitbox.setSize(45, 45);
+    (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = true;
+  }
+
+  private codeAttack() {
+    // Matrix-style code fragments attack
+    const direction = this.facingRight ? 1 : -1;
+    
+    for (let i = 0; i < 8; i++) {
+      this.scene.time.delayedCall(i * 30, () => {
+        this.specialAttackEmitter?.setPosition(
+          this.x + (Math.random() * 40 - 20) * direction,
+          this.y + Math.random() * 40 - 20
+        );
+        this.specialAttackEmitter?.explode(2);
+      });
+    }
+    
+    this.attackHitbox.setPosition(this.x + (35 * direction), this.y);
+    this.attackHitbox.setSize(50, 40);
+    (this.attackHitbox.body as Phaser.Physics.Arcade.Body).enable = true;
+  }
+
+  // Effect creation methods
+  private createPaintEffects() {
+    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+      speed: { min: 100, max: 200 },
+      scale: { start: 0.5, end: 0 },
+      blendMode: 'ADD',
+      tint: 0xff4f4f,
+    });
+  }
+
+  private createDesignEffects() {
+    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+      speed: { min: 150, max: 250 },
+      scale: { start: 0.3, end: 0 },
+      blendMode: 'ADD',
+      tint: 0x4fc3f7,
+    });
+  }
+
+  private createInkEffects() {
+    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+      speed: { min: 120, max: 180 },
+      scale: { start: 0.4, end: 0 },
+      blendMode: 'ADD',
+      tint: 0x2c2c2c,
+    });
+  }
+
+  private createSculptEffects() {
+    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+      speed: { min: 80, max: 150 },
+      scale: { start: 0.6, end: 0 },
+      blendMode: 'ADD',
+      tint: 0x8d6e63,
+    });
+  }
+
+  private createCodeEffects() {
+    this.specialAttackEmitter = this.scene.add.particles(0, 0, 'particle', {
+      speed: { min: 200, max: 300 },
+      scale: { start: 0.2, end: 0 },
+      blendMode: 'ADD',
+      tint: 0x00ff00,
+    });
   }
 }

@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -102,7 +101,13 @@ export default {
         'float': 'float 3s ease-in-out infinite',
         'pulse-light': 'pulse-light 2s ease-in-out infinite',
         'subtle-rotate': 'subtle-rotate 3s alternate infinite'
-			}
+			},
+			gridTemplateColumns: {
+				'32': 'repeat(32, minmax(0, 1fr))',
+			},
+			gridTemplateRows: {
+				'24': 'repeat(24, minmax(0, 1fr))',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

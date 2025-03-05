@@ -1,4 +1,3 @@
-
 import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { Enemy } from '../entities/Enemy';
@@ -24,10 +23,12 @@ export class MainScene extends Phaser.Scene {
   private callbacks: MainSceneCallbacks;
   private feedbackManager!: AdaptiveFeedbackManager;
   private lastFeedbackUpdate: number = 0;
+  private characterId: string;
 
-  constructor(callbacks: MainSceneCallbacks) {
+  constructor(config: { characterId: string }) {
     super({ key: 'MainScene' });
-    this.callbacks = callbacks;
+    this.callbacks = config;
+    this.characterId = config.characterId;
   }
 
   preload() {
@@ -44,31 +45,28 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-    // Create particle texture
-    createParticleTexture(this);
+    // Create dark background with grid
+    this.cameras.main.setBackgroundColor('#111111');
     
-    // Add background
-    this.add.image(0, 0, 'background')
-      .setOrigin(0, 0)
-      .setDisplaySize(this.cameras.main.width, this.cameras.main.height)
-      .setTint(0x555555);
-    
-    // Create platforms
+    // Create platforms (now with grid)
     this.platforms = createPlatforms(this);
     
-    // Create player
-    this.player = new Player(this, 100, 300);
+    // Create player with character type
+    this.player = new Player(this, 100, 450, this.characterId);
     
-    // Create enemies
+    // Create enemies at strategic positions
     this.enemies = this.physics.add.group({
       classType: Enemy,
       runChildUpdate: true
     });
     
-    // Add enemies at different positions
-    this.createEnemy(400, 300);
-    this.createEnemy(600, 300);
-    this.createEnemy(650, 100);
+    // Position enemies on platforms
+    this.createEnemy(600, 300); // On middle platform
+    this.createEnemy(700, 150); // On high platform
+    this.createEnemy(250, 450); // On ground level
+    
+    // Add visual effects
+    this.createAmbientEffects();
     
     // Setup collisions
     this.physics.add.collider(this.player, this.platforms);
@@ -183,5 +181,28 @@ export class MainScene extends Phaser.Scene {
     }
     
     this.callbacks.onFeedbackChange(hudFeedbackState);
+  }
+
+  private createAmbientEffects() {
+    // Add subtle glow particles
+    const particles = this.add.particles('particle');
+    
+    particles.createEmitter({
+      x: 0,
+      y: 0,
+      quantity: 1,
+      frequency: 2000,
+      lifespan: 4000,
+      speedY: { min: -20, max: -50 },
+      speedX: { min: -10, max: 10 },
+      scale: { start: 0.2, end: 0 },
+      alpha: { start: 0.3, end: 0 },
+      blendMode: 'ADD',
+      tint: 0x4466aa,
+      emitZone: {
+        type: 'random',
+        source: new Phaser.Geom.Rectangle(0, 0, 800, 600)
+      }
+    });
   }
 }

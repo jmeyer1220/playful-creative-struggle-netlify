@@ -1,4 +1,3 @@
-
 import { GameCanvas } from "@/components/GameCanvas";
 import { CharacterType } from "@/data/characters";
 import { useEffect } from "react";
@@ -23,18 +22,32 @@ const Game: React.FC<GameProps> = ({ selectedCharacter }) => {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-black overflow-hidden">
-      {/* Game Canvas - Takes full screen */}
+      {/* Game Canvas */}
       <div className="flex-1 relative">
         <GameCanvas 
           className="w-full h-full" 
           characterId={selectedCharacter.id} 
         />
-      </div>
-
-      {/* Character info overlay */}
-      <div className="absolute top-2 left-2 glass-panel rounded-lg px-3 py-1.5 text-sm text-white/80 flex items-center gap-2">
-        <div className={`${selectedCharacter.color} size-3 rounded-full`}></div>
-        <span>{selectedCharacter.name}</span>
+        
+        {/* Grid Overlay */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="w-full h-full grid grid-cols-32 grid-rows-24 opacity-10">
+            {Array.from({ length: 768 }).map((_, i) => (
+              <div key={i} className="border-[0.5px] border-white/10"></div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Character info overlay */}
+        <div className="absolute top-2 left-2 glass-panel rounded-lg px-3 py-1.5 text-sm text-white/80 flex items-center gap-2">
+          <div className={`${selectedCharacter.color} size-3 rounded-full`}></div>
+          <span>{selectedCharacter.name}</span>
+        </div>
+        
+        {/* Level info */}
+        <div className="absolute top-2 right-2 glass-panel rounded-lg px-3 py-1.5 text-sm text-white/80">
+          Level 1: Grid Protocol
+        </div>
       </div>
     </div>
   );
