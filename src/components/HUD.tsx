@@ -1,18 +1,16 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Heart, Zap, Home } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 type HUDProps = {
   health: number;
-  energy: number;
+  inspiration: number; // renamed from energy
   characterName: string;
   feedbackState: 'neutral' | 'positive' | 'negative';
 };
 
-export const HUD: React.FC<HUDProps> = ({ health, energy, characterName, feedbackState }) => {
+export const HUD: React.FC<HUDProps> = ({ health, inspiration, characterName, feedbackState }) => {
   return (
-    <div className="absolute inset-0 pointer-events-none font-mono">
+    <div className="absolute inset-0 pointer-events-none font-['Fira_Code']">
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 h-12 bg-black/40 border-b border-cyan-500/30 flex items-center justify-between px-4">
         {/* Character Info - Left Side */}
@@ -24,10 +22,10 @@ export const HUD: React.FC<HUDProps> = ({ health, energy, characterName, feedbac
             </div>
           </div>
           
-          {/* Health and Energy */}
+          {/* Health and Inspiration */}
           <div className="flex gap-4">
             <div className="flex items-center gap-2">
-              <div className="text-red-400 text-xs">HP</div>
+              <div className="text-red-400 text-xs">VITALITY</div>
               <div className="flex gap-1">
                 {Array.from({ length: Math.ceil(health / 20) }).map((_, i) => (
                   <div 
@@ -41,13 +39,13 @@ export const HUD: React.FC<HUDProps> = ({ health, energy, characterName, feedbac
             </div>
             
             <div className="flex items-center gap-2">
-              <div className="text-purple-400 text-xs">EP</div>
+              <div className="text-purple-400 text-xs">INSPIRATION</div>
               <div className="flex gap-1">
-                {Array.from({ length: Math.ceil(energy / 20) }).map((_, i) => (
+                {Array.from({ length: Math.ceil(inspiration / 20) }).map((_, i) => (
                   <div 
-                    key={`energy-${i}`} 
+                    key={`inspiration-${i}`} 
                     className={`h-3 w-3 border border-purple-500 ${
-                      i * 20 < energy ? 'bg-purple-500' : 'bg-purple-500/20'
+                      i * 20 < inspiration ? 'bg-purple-500' : 'bg-purple-500/20'
                     }`}
                   />
                 ))}
@@ -76,18 +74,53 @@ export const HUD: React.FC<HUDProps> = ({ health, energy, characterName, feedbac
         </div>
       </div>
 
-      {/* Feedback State */}
-      {feedbackState && (
+      {/* Creative State Feedback */}
+      {feedbackState !== 'neutral' && (
         <div className="absolute bottom-4 right-4">
-          <div className={`px-3 py-2 border ${
+          <div className={cn(
+            "px-3 py-2 border",
             feedbackState === 'positive' 
               ? 'border-green-500/30 text-green-400'
               : 'border-red-500/30 text-red-400'
-          }`}>
-            {feedbackState === 'positive' ? 'FOCUSED' : 'DISRUPTED'}
+          )}>
+            {feedbackState === 'positive' ? 'IN THE FLOW' : 'CREATIVE BLOCK'}
           </div>
         </div>
       )}
+
+      {/* Status Effects */}
+      <div 
+        className="absolute bottom-16 right-4" 
+        style={{ opacity: feedbackState !== 'neutral' ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
+      >
+        <div className="bg-black/70 border border-gray-700 px-3 py-2 rounded-md">
+          {feedbackState === 'positive' && (
+            <>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                <span className="text-[10px] text-green-300">Creative Flow +20%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                <span className="text-[10px] text-blue-300">Inspiration Gain +20%</span>
+              </div>
+            </>
+          )}
+          
+          {feedbackState === 'negative' && (
+            <>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                <span className="text-[10px] text-red-300">Creative Flow -10%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-orange-400"></div>
+                <span className="text-[10px] text-orange-300">Inspiration Drain +20%</span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
