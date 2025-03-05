@@ -20,9 +20,12 @@ export default defineConfig(({ mode }) => ({
     sourcemap: true,
     emptyOutDir: true,
     rollupOptions: {
+      external: [],
       output: {
         manualChunks: {
-          'phaser': ['phaser']
+          'phaser': ['phaser'],
+          'react-vendor': ['react', 'react-dom'],
+          'tanstack': ['@tanstack/react-query', '@tanstack/react-query-devtools']
         }
       }
     }
@@ -32,6 +35,6 @@ export default defineConfig(({ mode }) => ({
     open: true
   },
   optimizeDeps: {
-    include: ['phaser']
+    include: ['phaser', '@tanstack/react-query', '@tanstack/react-query-devtools']
   }
 }));
