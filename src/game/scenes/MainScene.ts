@@ -72,6 +72,15 @@ export class MainScene extends Phaser.Scene {
     // Add visual effects
     this.createAmbientEffects();
     
+    // Setup input keys
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    this.dashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+    
+    // Setup camera to follow player
+    this.cameras.main.startFollow(this.player);
+    this.cameras.main.setDeadzone(100, 100);
+    
     // Setup collisions
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.enemies, this.platforms);
@@ -92,10 +101,6 @@ export class MainScene extends Phaser.Scene {
       undefined,
       this
     );
-
-    // Setup camera to follow player
-    this.cameras.main.startFollow(this.player);
-    this.cameras.main.setDeadzone(100, 100);
     
     // Initialize adaptive feedback system
     this.feedbackManager = new AdaptiveFeedbackManager(this);
@@ -108,6 +113,13 @@ export class MainScene extends Phaser.Scene {
   }
 
   update() {
+    // Update player with input state
+    this.player.update(
+      this.cursors,
+      this.attackKey.isDown,
+      this.dashKey.isDown
+    );
+    
     // Update adaptive feedback system
     this.feedbackManager.update(this.time.delta);
     

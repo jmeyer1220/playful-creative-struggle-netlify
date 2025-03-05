@@ -30,6 +30,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setSize(16, 16);
     (this.body as Phaser.Physics.Arcade.Body).setGravityY(300);
     
+    // Add glow effect
+    const glow = scene.add.sprite(x, y, 'player-glow');
+    glow.setAlpha(0.5);
+    glow.setBlendMode(Phaser.BlendModes.ADD);
+    glow.setDepth(-1);
+    glow.setScale(1.2);
+    
+    // Make glow follow player
+    this.on('destroy', () => glow.destroy());
+    scene.events.on('update', () => {
+      glow.setPosition(this.x, this.y);
+      glow.setAlpha(0.3 + Math.sin(scene.time.now / 500) * 0.2);
+    });
+    
     // Create hitbox for attacks (hidden by default)
     this.attackHitbox = scene.add.rectangle(x, y, 30, 20, 0xff0000, 0);
     scene.physics.add.existing(this.attackHitbox, false);

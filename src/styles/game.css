@@ -1,0 +1,37 @@
+@font-face {
+  font-family: 'Pixel';
+  src: url('/fonts/PressStart2P-Regular.ttf') format('truetype');
+}
+
+.font-pixel {
+  font-family: 'Pixel', monospace;
+  letter-spacing: 0.5px;
+}
+
+.pixel-panel {
+  image-rendering: pixelated;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+.pixel-art-heart {
+  width: 32px;
+  height: 32px;
+  background: url('/sprites/heart.png') no-repeat;
+  image-rendering: pixelated;
+}
+
+.pixel-art-crystal {
+  width: 24px;
+  height: 24px;
+  background: url('/sprites/energy.png') no-repeat;
+  image-rendering: pixelated;
+}
+
+@keyframes glow {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 2px #0ff); }
+  50% { filter: brightness(1.2) drop-shadow(0 0 4px #0ff); }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+} 

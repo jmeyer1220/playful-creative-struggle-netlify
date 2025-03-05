@@ -81,3 +81,21 @@ function createGridBackground(scene: Phaser.Scene) {
   // Stroke the grid
   graphics.strokePath();
 }
+
+function createPlatformTexture(scene: Phaser.Scene) {
+  const graphics = scene.make.graphics({ x: 0, y: 0 });
+  
+  // Platform base
+  graphics.fillStyle(0x111111);
+  graphics.fillRect(0, 0, 32, 32);
+  
+  // Grid lines
+  graphics.lineStyle(1, 0x00ffff, 0.3);
+  graphics.strokeRect(0, 0, 32, 32);
+  graphics.lineBetween(16, 0, 16, 32);
+  graphics.lineBetween(0, 16, 32, 16);
+  
+  // Generate texture
+  graphics.generateTexture('platform', 32, 32);
+  graphics.destroy();
+}
