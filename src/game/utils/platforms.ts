@@ -3,6 +3,14 @@ import Phaser from 'phaser';
 const GRID_SIZE = 32; // Base size for our grid
 const GRID_COLOR = 0x1a1a1a; // Dark gray for grid lines
 
+const COLORS = {
+  primary: 0x0891b2, // cyan-600
+  secondary: 0x7e22ce, // purple-700
+  accent: 0x22d3ee, // cyan-400
+  dark: 0x0f172a, // slate-900
+  light: 0xe2e8f0, // slate-200
+};
+
 export function createPlatforms(scene: Phaser.Scene): Phaser.Physics.Arcade.StaticGroup {
   const platforms = scene.physics.add.staticGroup();
   
@@ -86,16 +94,19 @@ function createPlatformTexture(scene: Phaser.Scene) {
   const graphics = scene.make.graphics({ x: 0, y: 0 });
   
   // Platform base
-  graphics.fillStyle(0x111111);
+  graphics.fillStyle(COLORS.dark);
   graphics.fillRect(0, 0, 32, 32);
   
-  // Grid lines
-  graphics.lineStyle(1, 0x00ffff, 0.3);
+  // Grid pattern
+  graphics.lineStyle(1, COLORS.primary, 0.3);
   graphics.strokeRect(0, 0, 32, 32);
   graphics.lineBetween(16, 0, 16, 32);
   graphics.lineBetween(0, 16, 32, 16);
   
-  // Generate texture
+  // Edge highlight
+  graphics.lineStyle(2, COLORS.accent, 0.4);
+  graphics.strokeRect(0, 0, 32, 32);
+  
   graphics.generateTexture('platform', 32, 32);
   graphics.destroy();
 }

@@ -11,47 +11,70 @@ type HUDProps = {
 
 export const HUD: React.FC<HUDProps> = ({ health, energy, feedbackState }) => {
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      {/* Top Left: Health and Energy */}
-      <div className="absolute top-4 left-4 flex gap-2">
-        {/* Health Hearts */}
-        <div className="flex gap-1">
-          {Array.from({ length: Math.ceil(health / 25) }).map((_, i) => (
-            <div 
-              key={`heart-${i}`} 
-              className={`w-8 h-8 relative ${i * 25 + 25 <= health ? 'opacity-100' : 'opacity-50'}`}
-            >
-              <div className="absolute inset-0 pixel-art-heart animate-pulse" />
-            </div>
-          ))}
+    <div className="absolute inset-0 pointer-events-none font-mono">
+      {/* Top Left: Character Info */}
+      <div className="absolute top-4 left-4 flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <div className="text-cyan-400 text-sm">HEALTH</div>
+          <div className="flex gap-1">
+            {Array.from({ length: Math.ceil(health / 20) }).map((_, i) => (
+              <div 
+                key={`health-${i}`} 
+                className={`h-4 w-4 border border-cyan-500 ${
+                  i * 20 < health ? 'bg-cyan-500' : 'bg-cyan-500/20'
+                }`}
+              />
+            ))}
+          </div>
         </div>
         
-        {/* Energy Crystals */}
-        <div className="flex gap-1 ml-4">
-          {Array.from({ length: Math.ceil(energy / 25) }).map((_, i) => (
-            <div 
-              key={`energy-${i}`}
-              className={`w-6 h-6 relative ${i * 25 + 25 <= energy ? 'opacity-100' : 'opacity-30'}`}
-            >
-              <div className="absolute inset-0 pixel-art-crystal animate-glow" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Bottom Left: Controls (only show briefly or on pause) */}
-      <div className="absolute bottom-4 left-4 pixel-panel bg-black/80 border-2 border-cyan-500/30 p-2">
-        <div className="text-[10px] font-pixel text-cyan-300/90 flex flex-col gap-1">
-          <div>WASD/↑←↓→: MOVE</div>
-          <div>Z: ATTACK</div>
-          <div>X: DASH</div>
+        <div className="flex items-center gap-2">
+          <div className="text-purple-400 text-sm">ENERGY</div>
+          <div className="flex gap-1">
+            {Array.from({ length: Math.ceil(energy / 20) }).map((_, i) => (
+              <div 
+                key={`energy-${i}`} 
+                className={`h-4 w-4 border border-purple-500 ${
+                  i * 20 < energy ? 'bg-purple-500' : 'bg-purple-500/20'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Top Right: Level Info */}
-      <div className="absolute top-4 right-4 pixel-panel bg-black/80 border-2 border-cyan-500/30 p-2">
-        <div className="text-sm font-pixel text-cyan-300/90">LEVEL 1: GRID PROTOCOL</div>
+      <div className="absolute top-4 right-4">
+        <div className="bg-black/40 border border-cyan-500/30 px-3 py-2">
+          <div className="text-cyan-400 text-sm tracking-wider">
+            LEVEL 1: GRID PROTOCOL
+          </div>
+        </div>
       </div>
+
+      {/* Bottom Left: Controls */}
+      <div className="absolute bottom-4 left-4">
+        <div className="bg-black/40 border border-cyan-500/30 px-3 py-2">
+          <div className="text-xs text-cyan-400/80 flex flex-col gap-1">
+            <div>WASD/ARROWS - MOVE</div>
+            <div>Z - ATTACK</div>
+            <div>X - DASH</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Right: Feedback State */}
+      {feedbackState !== 'neutral' && (
+        <div className="absolute bottom-4 right-4">
+          <div className={`px-3 py-2 border ${
+            feedbackState === 'positive' 
+              ? 'border-green-500/30 text-green-400'
+              : 'border-red-500/30 text-red-400'
+          }`}>
+            {feedbackState === 'positive' ? 'FOCUSED' : 'DISRUPTED'}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
