@@ -17,6 +17,12 @@ export class MainScene extends Phaser.Scene {
   private enemies!: Phaser.Physics.Arcade.Group;
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private wasdKeys!: {
+    up: Phaser.Input.Keyboard.Key;
+    down: Phaser.Input.Keyboard.Key;
+    left: Phaser.Input.Keyboard.Key;
+    right: Phaser.Input.Keyboard.Key;
+  };
   private attackKey!: Phaser.Input.Keyboard.Key;
   private dashKey!: Phaser.Input.Keyboard.Key;
   
@@ -40,22 +46,25 @@ export class MainScene extends Phaser.Scene {
     
     // Set up keyboard controls
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-    this.dashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+    this.wasdKeys = {
+      up: this.input.keyboard.addKey('W'),
+      down: this.input.keyboard.addKey('S'),
+      left: this.input.keyboard.addKey('A'),
+      right: this.input.keyboard.addKey('D'),
+    };
+    this.attackKey = this.input.keyboard.addKey('Z');
+    this.dashKey = this.input.keyboard.addKey('X');
   }
 
   create() {
-    // Set world bounds and camera bounds
-    this.physics.world.setBounds(0, 0, 1600, 600);
-    this.cameras.main.setBounds(0, 0, 1600, 600);
-    
-    // Set background color
-    this.cameras.main.setBackgroundColor('#111111');
+    // Set world bounds and physics
+    this.physics.world.setBounds(0, 0, 800, 600);
+    this.physics.world.gravity.y = 500;
     
     // Create platforms
     this.platforms = createPlatforms(this);
     
-    // Create player with adjusted spawn position
+    // Create player
     this.player = new Player(this, 100, 300, this.characterId);
     
     // Create enemies at strategic positions
@@ -69,17 +78,18 @@ export class MainScene extends Phaser.Scene {
     this.createEnemy(700, 150); // On high platform
     this.createEnemy(250, 450); // On ground level
     
-    // Add visual effects
-    this.createAmbientEffects();
-    
-    // Setup input keys
+    // Setup both arrow keys and WASD
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-    this.dashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+    this.wasdKeys = {
+      up: this.input.keyboard.addKey('W'),
+      down: this.input.keyboard.addKey('S'),
+      left: this.input.keyboard.addKey('A'),
+      right: this.input.keyboard.addKey('D'),
+    };
     
-    // Setup camera to follow player
-    this.cameras.main.startFollow(this.player);
-    this.cameras.main.setDeadzone(100, 100);
+    // Setup action keys
+    this.attackKey = this.input.keyboard.addKey('Z');
+    this.dashKey = this.input.keyboard.addKey('X');
     
     // Setup collisions
     this.physics.add.collider(this.player, this.platforms);
@@ -110,9 +120,37 @@ export class MainScene extends Phaser.Scene {
     this.callbacks.onHealthChange(this.player.getHealth());
     this.callbacks.onEnergyChange(this.player.getEnergy());
     this.updateHUDFeedback();
+    
+    // Debug physics
+    this.physics.world.createDebugGraphic();
+    
+    console.log('Scene created, player position:', this.player.x, this.player.y);
   }
 
   update() {
+    if (!this.player) return;
+
+    // Combine WASD and arrow key inputs
+    const left = this.cursors.left.isDown || this.wasdKeys.left.isDown;
+    const right = this.cursors.right.isDown || this.wasdKeys.right.isDown;
+    const up = this.cursors.up.isDown || this.wasdKeys.up.isDown;
+
+    // Update player movement
+    if (left) {
+      this.player.setVelocityX(-160);
+    } else if (right) {
+      this.player.setVelocityX(160);
+    } else {
+      this.player.setVelocityX(0);
+    }
+
+    // Handle jumping
+    if (up && this.player.body.touching.down) {
+      this.player.setVelocityY(-330);
+    }
+
+    console.log('Player position:', this.player.x, this.player.y);
+
     // Update player with input state
     this.player.update(
       this.cursors,
