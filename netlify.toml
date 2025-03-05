@@ -1,12 +1,11 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm install --include=dev && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
   VITE_APP_TITLE = "Creative Struggle"
-  NPM_FLAGS = "--no-optional"
-  NODE_ENV = "production"
+  NODE_ENV = "development"
 
 [dev]
   command = "npm run dev"
