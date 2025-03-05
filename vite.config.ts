@@ -23,10 +23,20 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    emptyOutDir: true
+    emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'phaser': ['phaser']
+        }
+      }
+    }
   },
   server: {
     port: 3000,
     open: true
+  },
+  optimizeDeps: {
+    include: ['phaser']
   }
 }));
