@@ -1,11 +1,11 @@
 [build]
-  command = "npm install --include=dev && npm run build"
+  command = "npm ci && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
   VITE_APP_TITLE = "Creative Struggle"
-  NODE_ENV = "development"
+  NODE_ENV = "production"
 
 [dev]
   command = "npm run dev"
