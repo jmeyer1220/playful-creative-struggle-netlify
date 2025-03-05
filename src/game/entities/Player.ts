@@ -28,6 +28,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setCollideWorldBounds(true);
     this.setBounce(0.1);
     this.setSize(16, 16);
+    (this.body as Phaser.Physics.Arcade.Body).setGravityY(300);
     
     // Create hitbox for attacks (hidden by default)
     this.attackHitbox = scene.add.rectangle(x, y, 30, 20, 0xff0000, 0);
@@ -113,7 +114,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private jump() {
-    this.setVelocityY(-330);
+    this.setVelocityY(-400);
     this.jumpCount++;
   }
 

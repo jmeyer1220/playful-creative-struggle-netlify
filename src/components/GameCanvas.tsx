@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { MainScene } from '../game/scenes/MainScene';
@@ -35,8 +34,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className, characterId =
         physics: {
           default: 'arcade',
           arcade: {
-            gravity: { x: 0, y: 500 },
-            debug: false
+            gravity: { y: 300 },
+            debug: true
           }
         },
         scene: [mainScene],

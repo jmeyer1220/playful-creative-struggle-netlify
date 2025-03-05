@@ -45,17 +45,18 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-    // Create dark background with grid
+    // Set world bounds and camera bounds
+    this.physics.world.setBounds(0, 0, 1600, 600);
+    this.cameras.main.setBounds(0, 0, 1600, 600);
+    
+    // Set background color
     this.cameras.main.setBackgroundColor('#111111');
     
-    // Create particle texture
-    createParticleTexture(this);
-    
-    // Create platforms (now with grid)
+    // Create platforms
     this.platforms = createPlatforms(this);
     
-    // Create player with character type
-    this.player = new Player(this, 100, 450, this.characterId);
+    // Create player with adjusted spawn position
+    this.player = new Player(this, 100, 300, this.characterId);
     
     // Create enemies at strategic positions
     this.enemies = this.physics.add.group({
@@ -92,8 +93,8 @@ export class MainScene extends Phaser.Scene {
       this
     );
 
-    // Set camera to follow player
-    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    // Setup camera to follow player
+    this.cameras.main.startFollow(this.player);
     this.cameras.main.setDeadzone(100, 100);
     
     // Initialize adaptive feedback system
