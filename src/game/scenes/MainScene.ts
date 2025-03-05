@@ -7,9 +7,9 @@ import { createParticleTexture } from '../utils/assetLoader';
 
 type MainSceneCallbacks = {
   onHealthChange: (health: number) => void;
-  onEnergyChange: (energy: number) => void;
+  onInspirationChange: (inspiration: number) => void;
   onFeedbackChange: (state: 'neutral' | 'positive' | 'negative') => void;
-  characterId?: string; // Added this to fix the error
+  characterId?: string;
 };
 
 export class MainScene extends Phaser.Scene {
@@ -118,7 +118,7 @@ export class MainScene extends Phaser.Scene {
     
     // Update HUD with initial values
     this.callbacks.onHealthChange(this.player.getHealth());
-    this.callbacks.onEnergyChange(this.player.getEnergy());
+    this.callbacks.onInspirationChange(this.player.getEnergy());
     this.updateHUDFeedback();
     
     // Debug physics
@@ -175,7 +175,7 @@ export class MainScene extends Phaser.Scene {
     
     // Update HUD
     this.callbacks.onHealthChange(this.player.getHealth());
-    this.callbacks.onEnergyChange(this.player.getEnergy());
+    this.callbacks.onInspirationChange(this.player.getEnergy());
     
     // Update feedback state in HUD (not too frequently)
     if (this.time.now - this.lastFeedbackUpdate > 500) {

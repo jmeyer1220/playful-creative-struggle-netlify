@@ -9,11 +9,11 @@ type GameCanvasProps = {
   characterId?: string;
 };
 
-export const GameCanvas: React.FC<GameCanvasProps> = ({ className, characterId = 'writer' }) => {
+export const GameCanvas: React.FC<GameCanvasProps> = ({ className, characterId = 'designer' }) => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const gameInstanceRef = useRef<Phaser.Game | null>(null);
   const [health, setHealth] = React.useState(100);
-  const [energy, setEnergy] = React.useState(100);
+  const [inspiration, setInspiration] = React.useState(100);
   const [feedbackState, setFeedbackState] = React.useState<'neutral' | 'positive' | 'negative'>('neutral');
 
   // Initialize game
@@ -21,7 +21,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className, characterId =
     if (gameContainerRef.current && !gameInstanceRef.current) {
       const mainScene = new MainScene({
         onHealthChange: (newHealth) => setHealth(newHealth),
-        onEnergyChange: (newEnergy) => setEnergy(newEnergy),
+        onInspirationChange: (newInspiration) => setInspiration(newInspiration),
         onFeedbackChange: (state) => setFeedbackState(state),
         characterId: characterId
       });
@@ -82,7 +82,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({ className, characterId =
         ref={gameContainerRef} 
         className="w-full h-full"
       />
-      <HUD health={health} energy={energy} feedbackState={feedbackState} />
+      <HUD health={health} energy={inspiration} feedbackState={feedbackState} />
     </div>
   );
 };

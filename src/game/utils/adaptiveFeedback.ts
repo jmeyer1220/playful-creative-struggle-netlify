@@ -1,4 +1,3 @@
-
 import Phaser from 'phaser';
 import { FeedbackLevel, PerformanceStats, PlayerBuffs } from './feedback/types';
 import { interpolateColors, applyBackgroundColor } from './feedback/colorUtils';
@@ -7,6 +6,8 @@ import { PerformanceTracker } from './feedback/performanceTracker';
 
 // Use 'export type' when re-exporting types with 'isolatedModules' enabled
 export type { FeedbackLevel, PerformanceStats } from './feedback/types';
+
+export type FeedbackLevel = 'struggling' | 'focused' | 'flowing' | 'excelling';
 
 export class AdaptiveFeedbackManager {
   private scene: Phaser.Scene;
@@ -68,5 +69,15 @@ export class AdaptiveFeedbackManager {
   
   public getPlayerBuffs(): PlayerBuffs {
     return this.performanceTracker.getPlayerBuffs();
+  }
+  
+  private getCreativeStateEffects(level: FeedbackLevel): PlayerBuffs {
+    const effects = {
+      struggling: { speedMultiplier: 0.9, inspirationRegen: 0.8 },
+      focused: { speedMultiplier: 1.0, inspirationRegen: 1.0 },
+      flowing: { speedMultiplier: 1.1, inspirationRegen: 1.2 },
+      excelling: { speedMultiplier: 1.2, inspirationRegen: 1.5 }
+    };
+    return effects[level];
   }
 }
